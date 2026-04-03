@@ -18,10 +18,11 @@ with st.sidebar:
     st.markdown('**Date Filter**')
     start_date = st.date_input("Start Date", value=min_date)
     end_date = st.date_input("End Date", value=max_date)
+    
     filtered_df = df[
     (df['at'] >= pd.to_datetime(start_date)) &
     (df['at'] <= pd.to_datetime(end_date))
-]
+    ]
 
 
 # Page Setup

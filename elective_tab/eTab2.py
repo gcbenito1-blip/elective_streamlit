@@ -100,7 +100,7 @@ def render(df):
             },
             "config": {"view": {"stroke": None}, "axis": {"grid": False}},
         },
-        use_container_width=True,
+        width="stretch",
     )
     
     # ── Word Cloud ────────────────────────────────────────────────────────────
