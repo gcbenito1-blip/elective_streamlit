@@ -1,7 +1,9 @@
 from matplotlib.colors import LinearSegmentedColormap
 import streamlit as st
 import pandas as pd
+import nltk
 from nltk.corpus import stopwords
+nltk.download('stopwords')
 from wordcloud import WordCloud # type: ignore
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
