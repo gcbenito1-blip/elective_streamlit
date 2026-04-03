@@ -1,0 +1,22 @@
+todo list
+1.	Dataset Upload & Preprocessing
+[x] Upload historical academic and demographic records (Excel/CSV).
+[x] View dataset summary: total records, missing values, distribution across schools and demographic categories.
+[x] Trigger preprocessing: missing value handling, encoding categorical variables, normalization, and merging.
+2.	Exploratory Data Analysis (EDA)
+[x] statistics for numeric and categorical variables.
+[x] visualizations: histograms, boxplots, scatterplots, correlation heatmaps.
+[- di pa maayos filtering] options for schools, grades, or demographics to explore subgroup patterns.
+3.	Prediction Results Visualization
+[- di ko pa nagagawa yung probabilities] inferred MPS (from school MPS) and probability of achieving proficiency.
+[x] proficiency display (Not Proficient - Highly Proficient) using charts.
+[x] contributions panel: shows which predictors influenced each learner’s predicted MPS.
+[- filtering di pa maayos] options by school, gender, mother tongue, BMI category.
+4.	Model Evaluation Tools
+[x] metrics (RMSE, MAE, R²) and classification metrics (Accuracy, Precision, Recall, F1-score, ROC-AUC).
+[wla pang roc curve, meron conf mat summary]ROC curves and confusion matrices.
+[x] importance visualization for academic and demographic predictors.
+[- kailangan paba to>?] hyperparameter adjustment for model retraining.
+5.	Reports & Export Functionality
+[my mga download button na yung ibang mga dataframe, di ko pa alam paano pagsasamahin, another package pa ata yun sa pag export sa pdf/excel/image] predicted MPS and proficiency probabilities as CSV/Excel.
+[same sa above] visualizations and summary reports of model performance.
