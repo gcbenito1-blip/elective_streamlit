@@ -9,3 +9,4 @@ xgboost
 streamlit-shadcn-ui
 numpy
 shap
+wordcloud
