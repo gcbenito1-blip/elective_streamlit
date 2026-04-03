@@ -5,8 +5,8 @@ import pandas as pd
 
 def render(df):
     st.header(":material/dashboard: Dataset Overview", anchor=False)
-    df = pd.read_csv('data/egovph.csv')
     df['at'] = pd.to_datetime(df['at'])
+    df['at'] = df['at'].dt.date
     df = df.sort_values('at')
     st.markdown("**Key Performance Indicators**")
     col1, col2, col3, col4 = st.columns(4, border=True)
@@ -35,7 +35,13 @@ def render(df):
             }
         }
     }
-
+    #Line Chart
+    posts_per_day = df.groupby('at').size().reset_index(name='translated')
+    posts_per_day = posts_per_day.rename(columns={'translated':'Review Count'})
+    posts_per_day = posts_per_day.set_index('at')
+    st.markdown("**Reviews per Day**")
+    st.line_chart(posts_per_day, y_label="Review Count")
+    #Bar Chart
     colA, colB = st.columns(2)
     with colA:
         with st.container():
