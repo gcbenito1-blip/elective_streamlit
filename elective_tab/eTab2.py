@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import NMF
 from collections import Counter
-import numpy as np
 
 def render(df):
     st.header(":material/dictionary: Text Mining Analysis", anchor=False)
