@@ -9,8 +9,10 @@ from nltk.corpus import stopwords
 # Check if stopwords are already downloaded before trying to download
 try:
     nltk.data.find('corpora/stopwords')
+    nltk.data.find('corpora/vader_lexicon')
 except LookupError:
     nltk.download('stopwords')
+    nltk.download('vader_lexicon')
 
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sklearn.feature_extraction.text import TfidfVectorizer
