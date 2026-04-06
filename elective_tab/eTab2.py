@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import NMF
 from collections import Counter
+from openai import OpenAI
 
 def render(df):
     st.header(":material/dictionary: Text Mining Analysis", anchor=False)
@@ -53,9 +54,56 @@ def render(df):
     nmf_model.fit(tfidf_matrix)
 
     feature_names = vectorizer.get_feature_names_out()
+    
+    # Collect all topics with their top words
+    topics_data = []
     for topic_idx, topic in enumerate(nmf_model.components_):
         top_words = [feature_names[i] for i in topic.argsort()[:-6:-1]]
+        topics_data.append({
+            "topic_num": topic_idx + 1,
+            "words": top_words
+        })
         st.write(f"**Topic {topic_idx + 1}:** {', '.join(top_words)}")
+
+    # ── AI-Generated Topic Labels ────────────────────────────────────────────────
+    # Use OpenAI to generate understandable topic labels
+    if st.button("Generate Topic Labels with AI"):
+        with st.spinner("Analyzing topics..."):
+            # Initialize OpenAI client
+            client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=st.secrets["OPENROUTER_API_KEY"]
+            )
+            
+            # Build the prompt with all topics
+            topics_text = "\n".join([
+                f"Topic {t['topic_num']}: {', '.join(t['words'])}"
+                for t in topics_data
+            ])
+            
+            prompt = f"""You are a data analyst. I have performed topic modelling on a dataset and got 10 topics. 
+Below are the top 5 words for each topic. Please provide a short, understandable label (2-4 words) 
+and a brief description (1-2 sentences) for each topic that would help a non-technical user understand what each topic represents.
+
+{topics_text}
+
+Format your response as:
+Topic 1: [Label] - [Description]
+Topic 2: [Label] - [Description]
+and so on.
+"""
+            
+            # Call the AI
+            response = client.chat.completions.create(
+                model="openai/gpt-oss-120b:free",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            
+            # Display the AI-generated labels
+            st.subheader("AI-Generated Topic Labels")
+            st.markdown(response.choices[0].message.content)
 
     # ── Word Frequency Chart ─────────────────────────────────────────────────
     st.subheader("Top 20 Word Frequencies", anchor=False)
