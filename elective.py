@@ -29,7 +29,7 @@ with st.sidebar:
 st.set_page_config(
     page_title="eGovPH Review Insight",
     page_icon=":philippines:",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="auto",
     menu_items={
         'About': "Text Mining and Sentiment Analysis"

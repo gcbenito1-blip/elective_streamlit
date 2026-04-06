@@ -1,15 +1,23 @@
+import requests
+import json
+import re
 from matplotlib.colors import LinearSegmentedColormap
 import streamlit as st
 import pandas as pd
 import nltk
 from nltk.corpus import stopwords
-nltk.download('stopwords')
-from wordcloud import WordCloud # type: ignore
+
+# Check if stopwords are already downloaded before trying to download
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
+
+from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import NMF
 from collections import Counter
-from openai import OpenAI
 
 def render(df):
     st.header(":material/dictionary: Text Mining Analysis", anchor=False)
@@ -69,11 +77,19 @@ def render(df):
     # Use OpenAI to generate understandable topic labels
     if st.button("Generate Topic Labels with AI"):
         with st.spinner("Analyzing topics..."):
-            # Initialize OpenAI client
-            client = OpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=st.secrets["OPENROUTER_API_KEY"]
-            )
+            # Read API key from secrets.toml file directly
+            try:
+                with open('.streamlit/secrets.toml', 'r') as f:
+                    secrets_content = f.read()
+                    match = re.search(r'OPENROUTER_API_KEY\s*=\s*"([^"]+)"', secrets_content)
+                    if match:
+                        api_key = match.group(1)
+                    else:
+                        st.error("Could not find OPENROUTER_API_KEY in secrets.toml")
+                        st.stop()
+            except FileNotFoundError:
+                st.error("Could not find .streamlit/secrets.toml file")
+                st.stop()
             
             # Build the prompt with all topics
             topics_text = "\n".join([
@@ -93,17 +109,29 @@ Topic 2: [Label] - [Description]
 and so on.
 """
             
-            # Call the AI
-            response = client.chat.completions.create(
-                model="openai/gpt-oss-120b:free",
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
+            # Call the AI using requests directly
+            response = requests.post(
+                url="https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                data=json.dumps({
+                    "model": "openai/gpt-oss-120b:free",
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ]
+                })
             )
             
+            if response.status_code != 200:
+                st.error(f"API Error: {response.status_code} - {response.text}")
+                st.stop()
+            
             # Display the AI-generated labels
+            result = response.json()
             st.subheader("AI-Generated Topic Labels")
-            st.markdown(response.choices[0].message.content)
+            st.markdown(result['choices'][0]['message']['content'])
 
     # ── Word Frequency Chart ─────────────────────────────────────────────────
     st.subheader("Top 20 Word Frequencies", anchor=False)
