@@ -52,7 +52,7 @@ def render(df):
     with colB:
         with st.container():
             st.markdown("**Engagement vs Rating**")
-            st.bar_chart(eng.set_index('score'), x_label="Score", y_label="Average Review Likes", horizontal=True)
+            st.bar_chart(eng.set_index('score'), x_label="Average Review Likes", y_label="Score", horizontal=True)
     
     top_versions = df['reviewCreatedVersion'].value_counts()
     ver_df = top_versions.reset_index()
