@@ -2,7 +2,8 @@
 
 ## 1. Project Introduction
 
-**Project Name**: eGovPH Review Insight  
+**Project Name**: eGovPH Review Insight
+**Web App Name**: eGovPH Review Insight  
 **Purpose**: Text Mining and Sentiment Analysis for eGovPH Android App reviews from Google Play Store  
 **Tech Stack**: Python, Streamlit, pandas, scikit-learn, NLTK, WordCloud, OpenRouter API
 
@@ -14,17 +15,24 @@
 |-----------|-------|
 | **Source** | Google Play Store (eGovPH PH Android App) |
 | **Total Reviews** | 41,287 |
-| **Final dataset Columns** | `reviewId`, `content`, `score`, `thumbsUpCount`, `reviewCreatedVersion`, `at`, `translated` |
-| **Date Range** | Feb 2026 (data extracted) |
-| **App Version** | 2.6.9 |
+| **Columns** | `reviewId`, `content`, `score`, `thumbsUpCount`, `reviewCreatedVersion`, `at`, `translated` |
+| **Date Range** | April 2026 (data extracted) |
+| **App Version** | 2.7.1 (multiple versions supported) |
 
 ### Sample Data
 
 | score | reviewCreatedVersion | at | translated |
 |-------|---------------------|----|------------|
-| 5 | 2.6.9 | 2026-02-17 | good |
-| 5 | 2.6.9 | 2026-02-16 | exelent |
-| 5 | 2.6.9 | 2026-02-16 | happy |
+| 5 | 1.1.2 | 2023-06-02 | sirmaam, do you have someone in the land management bureau that can obtain or take care of the land title because the title has not been taken care of for more than 20 years. |
+| 2 | 2.3.5 | 2024-10-06 | always downed cannot use... |
+| 4 | 2.6.9 | 2026-01-14 | nice |
+| 5 | 2.1.4 | 2024-04-24 | good |
+| 4 | 1.8.3 | 2023-10-15 | amazing |
+| 5 | 2.3.2 | 2024-08-12 | nice app |
+| 5 | 2.6.8 | 2025-07-03 | nice ui. not laggy. would need more updated information. but over all good job. |
+| 5 | 2.1.12 | 2024-06-20 | please add back of the id |
+| 5 | 2.6.9 | 2026-02-07 | i love this app |
+| 5 | 2.6.9 | 2025-11-25 | nice more sent how to get its benefits easier no need to queue |
 
 ---
 
@@ -82,32 +90,12 @@ streamlit run elective.py
 - Sentiment distribution pie/bar chart
 - Word cloud generation
 
----
-
-## 6. Current Limitations & Next Steps
-
-### Limitations:
-- [ ] Dataset limited to single time period (Feb 2026)
-- [ ] No machine learning model for rating prediction
-- [ ] AI topic labeling requires API key
-- [ ] No export functionality for analyzed data
-- [ ] Limited language support (English only after translation)
-
-### Next Steps (To Complete):
-1. **Rating Prediction Model**: Build ML model to predict review score based on text
-2. **Enhanced Visualizations**: Add interactive charts with drill-down
-3. **Data Export**: Allow CSV export of analyzed results
-4. **Comparison Analysis**: Compare sentiment across app versions
-5. **Time Series Analysis**: Trend analysis over time
-
----
-
 ## 7. Workflow Summary
 
 ```
 Input (CSV) → Streamlit Load → Date Filter → Tab Selection
-                                               ↓
-                              ┌──────────���────┼───────────────┐
+                                              ↓
+                              ┌───────────────┼───────────────┐
                               ↓               ↓               ↓
                          eTab1.py         eTab2.py         eTab3.py
                               ↓               ↓               ↓
