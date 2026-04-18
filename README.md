@@ -15,7 +15,7 @@
 |-----------|-------|
 | **Source** | Google Play Store (eGovPH PH Android App) |
 | **Total Reviews** | 41,287 |
-| **Columns** | `reviewId` , `score`, `thumbsUpCount`, `reviewCreatedVersion`, `at`, `translated` |
+| **Columns** | `reviewId`, `score`, `thumbsUpCount`, `reviewCreatedVersion`, `at`, `translated` |
 | **Date Range** | April 2026 (data extracted) |
 | **App Version** | 2.7.1 (multiple versions supported) |
 
@@ -38,14 +38,45 @@
 
 ## 3. Data Processing / Preparation
 
-### Preprocessing Steps Implemented:
+### Preprocessing Pipeline
 
-1. **Date Parsing**: Converted `at` column to datetime format
-2. **Text Cleaning**: 
-   - Removed English stopwords (NLTK)
-   - Removed app-specific stopwords (e.g., "app", "update", "version", "phone", "po", "opo", "ng")
-   - Filtered tokens with length > 1
-3. **Filtering**: Date range filter via sidebar (start/end date picker)
+The data preprocessing pipeline consists of two main Jupyter notebooks:
+
+#### Step 1: Data Scraping & Cleaning ([`data_preprocessing1.ipynb`](data_preprocessing1.ipynb))
+
+**Tools**: `google-play-scraper`, `langdetect`, `unicodedata`, `re`
+
+**Operations**:
+1. **Scrape reviews** from Google Play Store (eGovPH app) using `reviews_all()` with `Sort.NEWEST`
+2. **Language detection** using `langdetect` to identify Tagalog (`tl`) vs English reviews
+3. **Text cleaning**:
+   - Unicode normalization (NFKC)
+   - Remove URLs, mentions (@), hashtags (#), HTML tags
+   - Remove special symbols and currency symbols
+   - Emoji removal using regex pattern
+   - Space normalization and lowercasing
+4. **Split dataset** into `df_eng` (English) and `df_tgl` (Tagalog)
+5. **Export**: `eng_review.csv`, `tgl_review.csv`
+
+#### Step 2: Translation & Dataset Finalization ([`bulk_translate.ipynb`](bulk_translate.ipynb))
+
+**Tools**: `googletrans`, `bulk-translate`, `pandas`
+
+**Operations**:
+1. **Batch translate** Tagalog reviews to English using `Translator().translate()` with batch size of 20
+2. **Combine** translated Tagalog (`tgl_df['translated']`) with English reviews (`df_eng['content']`)
+3. **Sort** by original index to maintain chronological order
+4. **Drop** intermediate columns (`clean`, `is_tagalog`)
+5. **Parse dates**: Convert `at` column to datetime format (`%Y-%m-%d %H:%M:%S`)
+6. **Export**: `final_dataset.csv` (41,287 reviews)
+
+### App-Level Text Processing (Streamlit)
+
+Within the Streamlit app (`elective.py` and `elective_tab/*.py`):
+1. **Date filtering**: Sidebar date range picker filters `df` by `at` column
+2. **Stopword removal**: NLTK English stopwords + custom app-specific stopwords (`app`, `update`, `version`, `phone`, `po`, `opo`, `ng`, etc.)
+3. **Token filtering**: Keep tokens with length > 1
+4. **`translated` column**: Used directly for sentiment analysis (VADER) and topic modeling (NMF)
 
 ---
 
@@ -118,3 +149,7 @@ Input (CSV) → Streamlit Load → Date Filter → Tab Selection
 | matplotlib | Plotting |
 | OpenRouter API | AI Topic Labeling |
 | requests | HTTP Requests |
+| google-play-scraper | Play Store data extraction |
+| langdetect | Language detection (Tagalog/English) |
+| googletrans | Batch translation (Tagalog → English) |
+| bulk-translate | Async translation helper |
