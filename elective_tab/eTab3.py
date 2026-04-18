@@ -74,7 +74,7 @@ def render(df):
     sentiment_colors = {'Positive': '#2ecc71', 'Neutral': '#95a5a6', 'Negative': '#e74c3c'}
 
     # Display metrics
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3, border=True)
     with col1:
         st.metric("Positive", f"{sentiment_counts.get('Positive', 0)}", 
                   )
