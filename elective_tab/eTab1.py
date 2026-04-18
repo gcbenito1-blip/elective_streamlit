@@ -34,12 +34,15 @@ def render(df):
             }
         }
     }
+    
     #Line Chart
-    posts_per_day = df.groupby('at').size().reset_index(name='translated')
-    posts_per_day = posts_per_day.rename(columns={'translated':'Review Count'})
-    posts_per_day = posts_per_day.set_index('at')
-    st.markdown("**Reviews per Day**")
-    st.line_chart(posts_per_day, y_label="Review Count")
+    df['month'] = pd.to_datetime(df['at']).dt.to_period('M').astype(str)
+    posts_per_month = df.groupby('month').size().reset_index(name='translated')
+    posts_per_month = posts_per_month.rename(columns={'translated':'Review Count'})
+    posts_per_month = posts_per_month.set_index('month')
+    st.markdown("**Reviews per Month**")
+    st.line_chart(posts_per_month, y_label="Review Count")
+    
     #Bar Chart
     colA, colB = st.columns(2)
     with colA:
