@@ -24,7 +24,29 @@
             height: 100vh;
             position: relative;
         }
+/* Make slide fill viewport and prevent scroll */
+.slide {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
 
+/* Center content */
+.slide-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Make image scale to fit fully */
+.slide-content img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
         .slide {
             position: absolute;
             top: 0;
