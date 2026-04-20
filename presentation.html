@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #FFF9F9;
             min-height: 100vh;
             overflow: hidden;
         }
@@ -38,8 +39,8 @@
             opacity: 0;
             transform: translateX(100%);
             transition: all 0.5s ease-in-out;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #ffffff;
+            background: #FFFFFF;
+            color: #2D3436;
         }
 
         .slide.active {
@@ -62,47 +63,47 @@
         h1 {
             font-size: 3.5rem;
             margin-bottom: 20px;
-            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #6C5CE7;
             text-align: center;
         }
 
         h2 {
             font-size: 2.5rem;
             margin-bottom: 30px;
-            color: #00d2ff;
-            border-bottom: 3px solid #00d2ff;
+            color: #6C5CE7;
+            border-bottom: 3px solid #FD79A8;
             padding-bottom: 10px;
         }
 
         h3 {
             font-size: 1.8rem;
             margin: 25px 0 15px 0;
-            color: #3a7bd5;
+            color: #00B894;
         }
 
-        p, li {
+        p,
+        li {
             font-size: 1.2rem;
             line-height: 1.8;
             margin-bottom: 15px;
         }
 
-        ul, ol {
+        ul,
+        ol {
             margin-left: 30px;
             margin-bottom: 20px;
         }
 
         .subtitle {
             font-size: 1.5rem;
-            color: #a0a0a0;
+            color: #636E72;
             text-align: center;
             margin-bottom: 40px;
         }
 
         .tagline {
             font-size: 1.8rem;
-            color: #00d2ff;
+            color: #E17055;
             text-align: center;
             font-style: italic;
             margin: 30px 0;
@@ -123,12 +124,12 @@
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.1);
+            background: #F8F9FA;
             border-radius: 15px;
             padding: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid #DFE6E9;
             transition: transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
 
         .card:hover {
@@ -136,12 +137,13 @@
         }
 
         .card h4 {
-            color: #00d2ff;
+            color: #6C5CE7;
             font-size: 1.3rem;
             margin-bottom: 15px;
         }
 
-        .card p, .card li {
+        .card p,
+        .card li {
             font-size: 1rem;
             margin-bottom: 10px;
         }
@@ -153,41 +155,42 @@
             font-size: 1rem;
         }
 
-        th, td {
+        th,
+        td {
             padding: 15px;
             text-align: left;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         th {
-            background: rgba(0, 210, 255, 0.2);
-            color: #00d2ff;
+            background: #A8D8EA;
+            color: #2D3436;
             font-weight: 600;
         }
 
         tr:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: #F8F9FA;
         }
 
         .code-block {
-            background: #0d1117;
+            background: #F8F9FA;
             border-radius: 10px;
             padding: 20px;
             font-family: 'Courier New', monospace;
             font-size: 1rem;
             overflow-x: auto;
             margin: 20px 0;
-            border: 1px solid #30363d;
+            border: 1px solid #DFE6E9;
         }
 
         .code-block code {
-            color: #c9d1d9;
+            color: #2D3436;
         }
 
         .badge {
             display: inline-block;
-            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
-            color: white;
+            background: #A8D8EA;
+            color: #2D3436;
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 0.9rem;
@@ -196,8 +199,8 @@
         }
 
         .highlight-box {
-            background: linear-gradient(90deg, rgba(0, 210, 255, 0.2), rgba(58, 123, 213, 0.2));
-            border-left: 5px solid #00d2ff;
+            background: #E8F6F3;
+            border-left: 5px solid #00B894;
             padding: 20px;
             margin: 20px 0;
             border-radius: 0 10px 10px 0;
@@ -211,23 +214,23 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #A8D8EA;
             padding: 30px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
 
         .stat-number {
             font-size: 3rem;
             font-weight: bold;
-            color: #ffffff;
+            color: #2D3436;
             display: block;
         }
 
         .stat-label {
             font-size: 1rem;
-            color: #a0a0a0;
+            color: #636E72;
             margin-top: 10px;
         }
 
@@ -241,8 +244,8 @@
         }
 
         .workflow-step {
-            background: rgba(0, 210, 255, 0.1);
-            border: 2px solid #00d2ff;
+            background: #E8F6F3;
+            border: 2px solid #00B894;
             padding: 20px 30px;
             border-radius: 10px;
             text-align: center;
@@ -251,7 +254,7 @@
 
         .workflow-arrow {
             font-size: 2rem;
-            color: #00d2ff;
+            color: #00B894;
         }
 
         .navigation {
@@ -265,7 +268,7 @@
         }
 
         .nav-btn {
-            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            background: #6C5CE7;
             color: white;
             border: none;
             padding: 15px 30px;
@@ -273,12 +276,12 @@
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(0, 210, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
         }
 
         .nav-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(0, 210, 255, 0.6);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
         }
 
         .nav-btn:disabled {
@@ -292,7 +295,7 @@
             top: 0;
             left: 0;
             height: 4px;
-            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            background: #FD79A8;
             transition: width 0.3s ease;
             z-index: 1000;
         }
@@ -301,12 +304,67 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: rgba(0, 0, 0, 0.5);
-            color: #00d2ff;
+            background: #F8F9FA;
+            color: #636E72;
             padding: 10px 20px;
             border-radius: 20px;
             font-size: 1rem;
             z-index: 1000;
+            border: 1px solid #DFE6E9;
+        }
+
+        .page-numbers {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 80vw;
+        }
+
+        .page-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #DFE6E9;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .page-dot:hover {
+            background: #A8D8EA;
+            transform: scale(1.2);
+        }
+
+        .page-dot.active {
+            background: #6C5CE7;
+            transform: scale(1.3);
+        }
+
+        .page-number-btn {
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: #DFE6E9;
+            color: #636E72;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .page-number-btn:hover {
+            background: #A8D8EA;
+            color: #2D3436;
+        }
+
+        .page-number-btn.active {
+            background: #6C5CE7;
+            color: white;
         }
 
         .tech-stack {
@@ -318,16 +376,16 @@
         }
 
         .tech-item {
-            background: rgba(255, 255, 255, 0.1);
+            background: #E8F6F3;
             padding: 15px 25px;
             border-radius: 10px;
-            border: 1px solid rgba(0, 210, 255, 0.3);
+            border: 1px solid #00B894;
             transition: all 0.3s ease;
         }
 
         .tech-item:hover {
-            background: rgba(0, 210, 255, 0.2);
-            border-color: #00d2ff;
+            background: #55EFC4;
+            border-color: #00B894;
         }
 
         .feature-list {
@@ -357,7 +415,8 @@
                 font-size: 2rem;
             }
 
-            .grid-2, .grid-3 {
+            .grid-2,
+            .grid-3 {
                 grid-template-columns: 1fr;
             }
 
@@ -379,7 +438,8 @@
                 font-size: 1.6rem;
             }
 
-            p, li {
+            p,
+            li {
                 font-size: 1rem;
             }
 
@@ -393,8 +453,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .pulse {
@@ -402,11 +469,19 @@
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="progress-bar" id="progressBar"></div>
 
@@ -718,7 +793,8 @@
                 </div>
                 <div class="card">
                     <h4>🧠 AI Enhancement</h4>
-                    <p>OpenRouter API generates human-readable topic labels from NMF output, making topics interpretable for stakeholders.</p>
+                    <p>OpenRouter API generates human-readable topic labels from NMF output, making topics interpretable
+                        for stakeholders.</p>
                 </div>
             </div>
         </div>
@@ -822,15 +898,15 @@
                     </div>
                 </div>
                 <div class="workflow-diagram" style="margin-top: 40px;">
-                    <div class="workflow-step" style="background: rgba(0, 210, 255, 0.2); border-color: #00d2ff;">
+                    <div class="workflow-step" style="background: #E8F6F3; border-color: #00B894;">
                         <h4>eTab1.py</h4>
                         <p>Dashboard</p>
                     </div>
-                    <div class="workflow-step" style="background: rgba(0, 210, 255, 0.2); border-color: #00d2ff;">
+                    <div class="workflow-step" style="background: #E8F6F3; border-color: #00B894;">
                         <h4>eTab2.py</h4>
                         <p>Text Mining</p>
                     </div>
-                    <div class="workflow-step" style="background: rgba(0, 210, 255, 0.2); border-color: #00d2ff;">
+                    <div class="workflow-step" style="background: #E8F6F3; border-color: #00B894;">
                         <h4>eTab3.py</h4>
                         <p>Sentiment</p>
                     </div>
@@ -918,8 +994,10 @@
         <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
         <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Next →</button>
     </div>
+    <div class="page-numbers" id="pageNumbers"></div>
+    <div class="page-numbers" id="pageNumbers"></div>
 
-    <div class="slide-number" id="slideNumber">1 / 13</div>
+    <div id="slideNumber" class="slide-number">1 / 13</div>
 
     <script>
         let currentSlide = 1;
@@ -949,11 +1027,43 @@
             // Update button states
             document.getElementById('prevBtn').disabled = currentSlide === 1;
             document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+
+            // Update page number indicators
+            updatePageIndicators();
         }
 
         function changeSlide(direction) {
             currentSlide += direction;
             showSlide(currentSlide);
+        }
+
+        function goToSlide(n) {
+            currentSlide = n;
+            showSlide(currentSlide);
+        }
+
+        function updatePageIndicators() {
+            const pageNumbers = document.querySelectorAll('.page-number-btn');
+            pageNumbers.forEach((btn, index) => {
+                if (index + 1 === currentSlide) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function createPageNumbers() {
+            const container = document.getElementById('pageNumbers');
+
+            for (let i = 1; i <= totalSlides; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'page-number-btn';
+                btn.textContent = i;
+                btn.onclick = () => goToSlide(i);
+                if (i === 1) btn.classList.add('active');
+                container.appendChild(btn);
+            }
         }
 
         // Keyboard navigation
@@ -995,7 +1105,9 @@
         }
 
         // Initialize
+        createPageNumbers();
         showSlide(currentSlide);
     </script>
 </body>
+
 </html>
