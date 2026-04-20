@@ -44,9 +44,6 @@ def render(df):
 
     df['processed_text'] = df['translated'].apply(preprocess_for_text_mining)
 
-    # ── Sentiment Analysis Pipeline ──────────────────────────────────────────────
-    st.subheader("Sentiment Analysis", anchor=False)
-
     # Initialize VADER sentiment analyzer
     sia = SentimentIntensityAnalyzer()
 
@@ -72,20 +69,6 @@ def render(df):
     # ── Sentiment Distribution Overview ─────────────────────────────────────────
     sentiment_counts = df['sentiment'].value_counts()
     sentiment_colors = {'Positive': '#2ecc71', 'Neutral': '#95a5a6', 'Negative': '#e74c3c'}
-
-    # Display metrics
-    col1, col2, col3 = st.columns(3, border=True)
-    with col1:
-        st.metric("Positive", f"{sentiment_counts.get('Positive', 0)}", 
-                  )
-    with col2:
-        st.metric("Neutral", f"{sentiment_counts.get('Neutral', 0)}", 
-                  )
-    with col3:
-        st.metric("Negative", f"{sentiment_counts.get('Negative', 0)}", 
-                  )
-
-
 
     # ── Sentiment Distribution (Vega-Lite) ───────────────────────────────────────
     st.subheader("Sentiment Distribution", anchor=False)
