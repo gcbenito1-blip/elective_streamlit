@@ -2,18 +2,19 @@
 showSidebarNavigation = false
 
 [theme]
-primaryColor = "#0f4ecc"           # Warm, professional accent color
-backgroundColor = "#f4f3ed"        # Soft cream background - easy on the eyes
-secondaryBackgroundColor = "#ecebe3"  # Subtle contrast for cards/sections
-textColor = "#3d3a2a"             # Dark brown - readable but not harsh black
-linkColor = "#3d3a2a"             # Keep links consistent with text
-borderColor = "#d3d2ca"           # Gentle borders that define
+# Pastel Theme - Soft, Calming Color Palette
+primaryColor = "#0089c9"           # Soft sky blue - gentle accent
+backgroundColor = "#faf8f5"        # Warm off-white with subtle pink undertone
+secondaryBackgroundColor = "#eef2f4"  # Light pastel blue-gray for cards/sections
+textColor = "#4a5563"             # Soft charcoal - readable but not harsh
+linkColor = "#0e5066"             # Muted teal - matches primary family
+borderColor = "#dbe2e5"           # Light gray-blue for subtle borders
 showWidgetBorder = true           # Clean widget definition
-baseRadius = "0.6rem"             # Subtle rounded corners - modern feel
-codeFont = "SpaceMono"            # Monospace for code blocks
-codeBackgroundColor = "#ecebe4"   # Code gets subtle background highlight
-showSidebarBorder = true          # Clean sidebar separation
+baseRadius = "0.8rem"             # Rounded corners - friendly feel
+codeFont = "JetBrains Mono"       # Modern monospace for code blocks
+codeBackgroundColor = "#e8eef1"   # Light blue-gray for code blocks
 
 [theme.sidebar]
-backgroundColor = "#e8e7dd"        # Sidebar slightly darker than main
-secondaryBackgroundColor = "#ecebe3"
+backgroundColor = "#eef2f4"        # Sidebar matches secondary
+secondaryBackgroundColor = "#e2e8ec"
+borderColor = "#d1dbe0"
