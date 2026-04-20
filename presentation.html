@@ -349,6 +349,37 @@
             object-fit: contain;
         }
 
+        /* Slide 4: Full image preview without scroll */
+        .slide-content-full {
+            overflow: hidden !important;
+            max-height: 85vh;
+        }
+
+        .slide-content-full h2 {
+            margin-bottom: 10px;
+        }
+
+        .slide-content-full p {
+            margin-bottom: 15px;
+        }
+
+        .image-container {
+            width: 100%;
+            height: calc(85vh - 120px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+
         .page-dot {
             width: 12px;
             height: 12px;
@@ -618,11 +649,13 @@
 
         <!-- Slide 4: Sample Data -->
         <div class="slide" data-slide="4">
-            <div class="slide-content">
+            <div class="slide-content slide-content-full">
                 <h2>Sample Data Preview</h2>
                 <p>Reviews include a mix of ratings, app versions, date, and user feedback:</p>
-                <img
-                    src="https://raw.githubusercontent.com/gcbenito1-blip/elective_streamlit/refs/heads/main/data/Screenshot%202026-04-20%20at%2010-41-43%20CSV%20Viewer%20-%2043907%20rows%207%20columns%20CSV%20Visualization.png"></img>
+                <div class="image-container">
+                    <img
+                        src="https://raw.githubusercontent.com/gcbenito1-blip/elective_streamlit/refs/heads/main/data/Screenshot%202026-04-20%20at%2010-41-43%20CSV%20Viewer%20-%2043907%20rows%207%20columns%20CSV%20Visualization.png">
+                </div>
             </div>
         </div>
 
