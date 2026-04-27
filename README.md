@@ -4,8 +4,8 @@
 ## 1. Project Introduction
 
 **Project Name**: eGovPH Review Insight
-**Web App Name**: eGovPH Review Insight  
-**Purpose**: Text Mining and Sentiment Analysis for eGovPH Android App reviews from Google Play Store  
+**Web App Name**: eGovPH Review Insight
+**Purpose**: Text Mining and Sentiment Analysis for eGovPH Android App reviews from Google Play Store
 **Tech Stack**: Python, Streamlit, pandas, scikit-learn, NLTK, WordCloud, OpenRouter API
 
 ---
@@ -17,7 +17,7 @@
 | **Source** | Google Play Store (eGovPH PH Android App) |
 | **Total Reviews** | 43,866 |
 | **Columns** | `reviewId`, `score`, `thumbsUpCount`, `reviewCreatedVersion`, `at`, `translated` |
-| **Date Range** | April 2026 (data extracted) |
+| **Date Range** | May 2023 - April 2026 (data extracted) |
 | **App Version** | 2.7.1 (multiple versions supported) |
 
 ### Sample Data
@@ -69,7 +69,7 @@ The data preprocessing pipeline consists of two main Jupyter notebooks:
 3. **Sort** by original index to maintain chronological order
 4. **Drop** intermediate columns (`clean`, `is_tagalog`)
 5. **Parse dates**: Convert `at` column to datetime format (`%Y-%m-%d %H:%M:%S`)
-6. **Export**: `final_dataset.csv` (41,287 reviews)
+6. **Export**: `final_dataset.csv` (43,907 reviews)
 
 ### App-Level Text Processing (Streamlit)
 
@@ -84,9 +84,10 @@ Within the Streamlit app (`elective.py` and `elective_tab/*.py`):
 ## 4. Analytics & Models
 
 ### A. Dashboard Overview (eTab1.py)
-- **KPIs**: Total Reviews, Average Score, Median Score, Total Likes
+- **KPIs**: Total Reviews (43,907), Average Score (4.19), Median Score (5.0), Total Likes (26,131)
 - **Charts**: Rating Distribution, Reviews per Day, Engagement vs Rating
 - **Analysis**: Top App Versions by Volume & Average Score
+  - Top versions: 2.6.9 (13,719 reviews), 2.3.5 (6,010), 2.6.8 (1,792), 2.6.2 (1,482), 2.4.3 (1,274)
 
 ### B. Text Mining Analysis (eTab2.py)
 - **Topic Modelling**: NMF (Non-negative Matrix Factorization) with 10 topics
@@ -126,14 +127,14 @@ streamlit run elective.py
 
 ```
 Input (CSV) → Streamlit Load → Date Filter → Tab Selection
-                                              ↓
-                              ┌───────────────┼───────────────┐
-                              ↓               ↓               ↓
-                         eTab1.py         eTab2.py         eTab3.py
-                              ↓               ↓               ↓
-                        Dashboard       Text Mining     Sentiment
-                              ↓               ↓               ↓
-                        Metrics/Charts  Topics/WordCloud  VADER Scores
+                                               ↓
+                               ┌───────────────┼───────────────┐
+                               ↓               ↓               ↓
+                          eTab1.py         eTab2.py         eTab3.py
+                               ↓               ↓               ↓
+                         Dashboard       Text Mining     Sentiment
+                               ↓               ↓               ↓
+                         Metrics/Charts  Topics/WordCloud  VADER Scores
 ```
 
 ---
