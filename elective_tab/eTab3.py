@@ -134,8 +134,6 @@ def render(df):
             avg_neg_sentiment = negative_df['sentiment_score'].mean()
             st.metric("Avg Negative Sentiment", f"{avg_neg_sentiment:.2f}")
         
-        st.divider()
-        
         # Topic Distribution Chart
         st.write("**Topic Distribution in Negative Reviews**")
         topic_dist = negative_df['topic_label'].value_counts()
@@ -256,10 +254,90 @@ and so on.
             # Get sample reviews for this topic
             topic_reviews = negative_df[negative_df['topic'] == selected_topic_num].copy()
             topic_reviews = topic_reviews.sort_values('sentiment_score')
-            
-            st.write("**Sample Reviews from This Topic:**")
-            sample_size = min(10, len(topic_reviews))
-            for idx, row in topic_reviews.head(sample_size).iterrows():
-                with st.container(border=True):
-                    st.markdown(f"**Score:** {row['sentiment_score']:.2f} :material/star:")
-                    st.markdown(f"{row['translated']}")
+
+            topic1, topic2 = st.columns(2) 
+            with topic1:
+                st.write("**Sample Reviews from This Topic:**")
+                sample_size = min(10, len(topic_reviews))
+                for idx, row in topic_reviews.head(sample_size).iterrows():
+                    with st.container(border=True):
+                        st.markdown(f"**Score:** {row['sentiment_score']:.2f} :material/star:")
+                        st.markdown(f"{row['translated']}")
+
+            # Entity Extraction on Negative Reviews
+            with topic2:
+                st.write("**Entity Extraction - Negative Reviews**")
+                def extract_entities(text):
+                    text_lower = str(text).lower()
+                    entities = []
+                    feature_keywords = ['login', 'password', 'crash', 'slow', 'fast', 'ui', 'interface', 
+                                    'button', 'menu', 'notification', 'update', 'feature', 'function']
+                    os_keywords = ['android', 'samsung', 'xiaomi', 'oppo', 'vivo', 
+                                'tablet', 'phone', 'device']
+                    for keyword in feature_keywords:
+                        if keyword in text_lower:
+                            entities.append((keyword, 'feature'))
+                    for keyword in os_keywords:
+                        if keyword in text_lower:
+                            entities.append((keyword, 'os_device'))
+                    seen = set()
+                    unique_entities = []
+                    for entity, etype in entities:
+                        if (entity, etype) not in seen:
+                            seen.add((entity, etype))
+                            unique_entities.append((entity, etype))
+                    return unique_entities[:5]
+                
+                all_entities_neg = []
+                for text in negative_df['translated']:
+                    entities = extract_entities(text)
+                    all_entities_neg.extend(entities)
+                
+                entity_counts_neg = Counter([entity for entity, _ in all_entities_neg])
+                entity_type_map_neg = {entity: etype for entity, etype in all_entities_neg}
+                
+                if entity_counts_neg:
+                    entity_data_neg = []
+                    for entity, count in entity_counts_neg.most_common(10):
+                        entity_type = entity_type_map_neg.get(entity, 'unknown')
+                        sample_reviews = []
+                        for idx, row in negative_df.iterrows():
+                            if entity in str(row['translated']).lower():
+                                sample_reviews.append(str(row['translated'])[:100] + "...")
+                                if len(sample_reviews) >= 2:
+                                    break
+                        entity_data_neg.append({
+                            "Entity": entity,
+                            "Type": entity_type.replace('_', ' ').title(),
+                            "Count": count,
+                            "Sample Reviews": " | ".join(sample_reviews) if sample_reviews else "No samples"
+                        })
+                    entity_df_neg = pd.DataFrame(entity_data_neg)
+                    st.dataframe(entity_df_neg, width="stretch", hide_index=True)
+                else:
+                    st.info("No entities detected in the negative reviews")
+                
+                # Co-occurrence Analysis for Negative Reviews
+                st.write("**Co-occurrence Analysis - Negative Reviews**")
+                if 'entity_df_neg' in locals() and len(entity_df_neg) > 0 and len(negative_topics_data) > 0:
+                    cooccur_data_neg = []
+                    for topic in negative_topics_data[:3]:
+                        topic_num = topic['topic_num']
+                        topic_label = st.session_state.topic_labels.get(topic_num, f"Topic {topic_num}")
+                        topic_word_set = set(topic['words'])
+                        for _, entity_row in entity_df_neg.head(5).iterrows():
+                            entity = entity_row['Entity']
+                            cooccur_score = 1 if entity in topic_word_set or any(word in entity.lower() for word in topic['words']) else 0
+                            if cooccur_score > 0:
+                                cooccur_data_neg.append({
+                                    "Topic": topic_label,
+                                    "Entity": entity,
+                                    "Co-occurrence Score": cooccur_score
+                                })
+                    if cooccur_data_neg:
+                        cooccur_df_neg = pd.DataFrame(cooccur_data_neg)
+                        st.dataframe(cooccur_df_neg, width="stretch", hide_index=True)
+                    else:
+                        st.info("No significant co-occurrences found between negative topics and entities")
+                else:
+                    st.info("Insufficient data for co-occurrence analysis")
