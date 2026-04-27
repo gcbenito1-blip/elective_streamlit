@@ -51,7 +51,11 @@ st.title(":material/bar_chart: eGovPH Review Insight", anchor=False)
 st.markdown("<p class='sub-text'>Text Mining and Sentiment analysis for eGovPH Android App</p>", unsafe_allow_html=True)
 
 with st.container():
-    u1, u2, u3 = st.tabs([':material/dashboard: Overview', ':material/dictionary: Text Mining Analysis', ':material/cognition_2: Sentiment Analysis'])
+    u1, u2, u3 = st.tabs([
+        ':material/dashboard: Overview',
+        ':material/cognition_2: Text Mining & Sentiment Analysis',
+        ':material/trending_down: Negative Reviews Deep Dive'
+    ])
 
 with u1:
     eTab1.render(filtered_df)
