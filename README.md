@@ -84,22 +84,28 @@ Within the Streamlit app (`elective.py` and `elective_tab/*.py`):
 ## 4. Analytics & Models
 
 ### A. Dashboard Overview (eTab1.py)
-- **KPIs**: Total Reviews (43,907), Average Score (4.19), Median Score (5.0), Total Likes (26,131)
-- **Charts**: Rating Distribution, Reviews per Day, Engagement vs Rating
+- **KPIs**: Total Reviews (43,866), Average Score (4.19), Median Score (5.0), Total Likes (26,131)
+- **Charts**: Rating Distribution, Reviews per Month, Engagement vs Rating
 - **Analysis**: Top App Versions by Volume & Average Score
   - Top versions: 2.6.9 (13,719 reviews), 2.3.5 (6,010), 2.6.8 (1,792), 2.6.2 (1,482), 2.4.3 (1,274)
 
-### B. Text Mining Analysis (eTab2.py)
+### B. Text Mining & Sentiment Analysis (eTab2.py)
+- **Sentiment Analysis**: VADER-based sentiment scoring and classification (Positive/Neutral/Negative)
+- **Sentiment Trends**: Monthly sentiment distribution tracking with percentage breakdowns
 - **Topic Modelling**: NMF (Non-negative Matrix Factorization) with 10 topics
-- **Word Frequency**: Top 20 most common words
-- **Visualization**: Word Cloud
+- **Word Frequency Analysis**: Top keywords and term prevalence
+- **Visualization**: Word Cloud, Sentiment Over Time line charts, Distribution charts
+- **Entity Extraction**: Feature and OS/device keyword identification from reviews
+- **Co-occurrence Analysis**: Topic-entity relationship mapping
 - **AI Enhancement**: OpenRouter API for generating human-readable topic labels
 
-### C. Sentiment Analysis (eTab3.py)
-- **Method**: VADER (Valence Aware Dictionary and sEntiment Reasoner)
-- **Classification**: Positive (≥0.05), Neutral (-0.05 to 0.05), Negative (≤-0.05)
-- **Analysis**: Sentiment distribution, score histogram, negative review topics
-- **AI Enhancement**: OpenRouter API for negative review topic labeling
+### C. Negative Reviews Deep Dive (eTab3.py)
+- **Focus**: Comprehensive analysis of negative sentiment reviews only
+- **Method**: VADER sentiment classification (Negative: ≤-0.05)
+- **Topic Modeling**: NMF-based topic extraction specific to negative reviews
+- **Analysis**: Negative topic distribution, key complaint areas
+- **Entity Extraction**: Problem area identification (features, devices, OS issues)
+- **AI Enhancement**: OpenRouter API for negative topic labeling and description generation
 
 ---
 

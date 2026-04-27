@@ -585,11 +585,12 @@
                     <div class="card">
                         <h4>Key Features</h4>
                         <ul>
-                            <li>Sentiment analysis</li>
+                            <li>Sentiment analysis with VADER</li>
                             <li>Topic modeling with NMF</li>
                             <li>Interactive dashboard</li>
                             <li>Word cloud visualization</li>
-                            <li>Topic labeling</li>
+                            <li>Entity extraction</li>
+                            <li>AI-enhanced topic labeling</li>
                         </ul>
                     </div>
                 </div>
@@ -703,7 +704,7 @@
                             <li>Combine with English reviews</li>
                             <li>Sort by chronological order</li>
                             <li>Parse dates to datetime format</li>
-                            <li>Export: final_dataset.csv (43,907 reviews)</li>
+                            <li>Export: final_dataset.csv (43,866 reviews)</li>
                         </ul>
                     </div>
                 </div>
@@ -749,34 +750,38 @@
                 <h2>Analytics & Models</h2>
                 <div class="grid-3">
                     <div class="card">
-                        <h4>📊 Tab 1: Dashboard</h4>
+                        <h4>📊 Tab 1: Dashboard Overview</h4>
                         <p><strong>eTab1.py</strong></p>
                         <ul>
-                            <li>KPIs: Total Reviews, Avg Score, Median, Likes</li>
+                            <li>KPIs: Total Reviews (43,866), Avg Score, Median, Likes</li>
                             <li>Rating Distribution chart</li>
-                            <li>Reviews per Day line chart</li>
+                            <li>Reviews per Month line chart</li>
                             <li>Engagement vs Rating</li>
                             <li>Top App Versions analysis</li>
                         </ul>
                     </div>
                     <div class="card">
-                        <h4>🔍 Tab 2: Text Mining</h4>
+                        <h4>🔍 Tab 2: Text Mining & Sentiment</h4>
                         <p><strong>eTab2.py</strong></p>
                         <ul>
+                            <li>Sentiment Analysis: VADER-based scoring</li>
+                            <li>Monthly Sentiment Trends</li>
                             <li>Topic Modelling: NMF (10 topics)</li>
-                            <li>Word Frequency (Top 20)</li>
-                            <li>Word Cloud visualization</li>
-                            <li>AI-enhanced topic labels (OpenRouter)</li>
+                            <li>Word Frequency & Word Cloud</li>
+                            <li>Entity Extraction</li>
+                            <li>Co-occurrence Analysis</li>
+                            <li>AI-enhanced labels (OpenRouter)</li>
                         </ul>
                     </div>
                     <div class="card">
-                        <h4>😊 Tab 3: Sentiment</h4>
+                        <h4>😊 Tab 3: Negative Reviews Deep Dive</h4>
                         <p><strong>eTab3.py</strong></p>
                         <ul>
-                            <li>VADER Sentiment Analysis</li>
-                            <li>3-class classification</li>
-                            <li>Sentiment distribution</li>
-                            <li>Negative review topics</li>
+                            <li>Focus on Negative Sentiment Reviews</li>
+                            <li>VADER classification (Negative: ≤-0.05)</li>
+                            <li>NMF-based topic extraction</li>
+                            <li>Negative topic distribution</li>
+                            <li>Entity extraction for problem areas</li>
                             <li>AI-powered labeling</li>
                         </ul>
                     </div>
@@ -869,18 +874,18 @@
                     </div>
                     <div class="card">
                         <h4>🔍 Text Mining Tab</h4>
-                        <p>10 topics, word cloud, frequency analysis</p>
+                        <p>Sentiment analysis, topic modeling, word cloud</p>
                     </div>
                     <div class="card">
                         <h4>😊 Sentiment Tab</h4>
-                        <p>VADER sentiment classification & analysis</p>
+                        <p>VADER sentiment classification & negative review analysis</p>
                     </div>
                 </div>
                 <div class="card">
                     <h4>🎨 Key Visualizations</h4>
                     <ul>
                         <li>Rating distribution bar chart</li>
-                        <li>Reviews per day line chart</li>
+                        <li>Reviews per month line chart</li>
                         <li>Sentiment distribution pie/bar chart</li>
                         <li>Word cloud generation</li>
                     </ul>
@@ -920,11 +925,11 @@
                     </div>
                     <div class="workflow-step" style="background: #E8F6F3; border-color: #00B894;">
                         <h4>eTab2.py</h4>
-                        <p>Text Mining</p>
+                        <p>Text Mining & Sentiment</p>
                     </div>
                     <div class="workflow-step" style="background: #E8F6F3; border-color: #00B894;">
                         <h4>eTab3.py</h4>
-                        <p>Sentiment</p>
+                        <p>Negative Reviews</p>
                     </div>
                 </div>
                 <div class="highlight-box" style="margin-top: 30px;">
@@ -1003,7 +1008,6 @@
         <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
         <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Next →</button>
     </div>
-    <div class="page-numbers" id="pageNumbers"></div>
     <div class="page-numbers" id="pageNumbers"></div>
 
     <div id="slideNumber" class="slide-number">1 / 13</div>
@@ -1107,8 +1111,7 @@
             const swipeThreshold = 50;
             if (touchEndX < touchStartX - swipeThreshold) {
                 changeSlide(1); // Swipe left - next
-            }
-            if (touchEndX > touchStartX + swipeThreshold) {
+            } else if (touchEndX > touchStartX + swipeThreshold) {
                 changeSlide(-1); // Swipe right - previous
             }
         }
