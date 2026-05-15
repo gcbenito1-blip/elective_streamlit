@@ -1,5 +1,5 @@
 import streamlit as st
-from elective_tab import eTab1, eTab2, eTab3
+from elective_tab import eTab1, eTab2, eTab3, eTab0, eTab4
 import pandas as pd
 
 @st.cache_data
@@ -51,15 +51,21 @@ st.title(":material/bar_chart: eGovPH Review Insight", anchor=False)
 st.markdown("<p class='sub-text'>Text Mining and Sentiment analysis for eGovPH Android App</p>", unsafe_allow_html=True)
 
 with st.container():
-    u1, u2, u3 = st.tabs([
-        ':material/dashboard: Overview',
+    u0, u1, u2, u3, u4 = st.tabs([
+        ':material/bolt: Quick Insight',
+        ':material/dashboard: Trend Overview',
         ':material/cognition_2: Text Mining & Sentiment Analysis',
-        ':material/trending_down: Negative Reviews Deep Dive'
+        ':material/trending_down: Negative Reviews Deep Dive',
+        ':material/score: Evaluation Metrics',
     ])
 
+with u0:
+    eTab0.render()
 with u1:
     eTab1.render(filtered_df)
 with u2:
     eTab2.render(filtered_df)
 with u3:
     eTab3.render(filtered_df)
+with u4:
+    eTab4.render(filtered_df)

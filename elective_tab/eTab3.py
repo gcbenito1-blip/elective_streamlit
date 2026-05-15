@@ -10,6 +10,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import NMF
 from collections import Counter
 import numpy as np
+import hashlib
+import time
 
 # Check if stopwords and vader_lexicon are already downloaded before trying to download
 try:
@@ -19,12 +21,102 @@ except LookupError:
     nltk.download('stopwords')
     nltk.download('vader_lexicon')
 
+@st.cache_data(ttl=3600, show_spinner="Generating AI complaint insights...")
+def generate_negative_ai_topic_labels_cached(topics_hash, topics_data, api_key):
+    """Generate AI-based topic labels for negative reviews with caching"""
+    topics_text = "\n".join([
+        f"Topic {i+1} (keywords: {', '.join(t['words'][:8])})" 
+        for i, t in enumerate(topics_data)
+    ])
+    
+    prompt = f"""You are a data analyst specializing in customer feedback. I have performed topic modelling on NEGATIVE reviews from an app store.
+Below are the top keywords/phrases for each complaint topic identified. Please provide a short, actionable label (2-4 words) 
+and a brief description (1-2 sentences) for each topic that explains WHAT users are complaining about and WHY.
+
+{topics_text}
+
+Format your response EXACTLY as:
+Topic 1: [Label] - [Description]
+Topic 2: [Label] - [Description]
+and so on. Focus on the core issue users are facing.
+"""
+    
+    try:
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            data=json.dumps({
+                "model": "openai/gpt-3.5-turbo",
+                "messages": [
+                    {"role": "system", "content": "You are a helpful data analyst specializing in negative app review analysis."},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 1000
+            }),
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            st.error(f"API Error: {response.status_code}")
+            return None
+        
+        result = response.json()
+        return result['choices'][0]['message']['content']
+    except Exception as e:
+        st.error(f"Error generating AI labels: {str(e)}")
+        return None
+
+def parse_negative_ai_labels(ai_response, topics_data):
+    """Parse AI response and extract topic labels for negative reviews"""
+    labels = {}
+    lines = ai_response.strip().split('\n')
+    
+    for i, topic in enumerate(topics_data):
+        topic_num = i + 1
+        for line in lines:
+            match = re.match(rf'Topic\s*{topic_num}\s*:\s*([^-]+?)\s*-\s*(.+)', line, re.IGNORECASE)
+            if match:
+                label = match.group(1).strip()
+                description = match.group(2).strip()
+                labels[topic_num] = {'label': label, 'description': description}
+                break
+        
+        if topic_num not in labels:
+            labels[topic_num] = {
+                'label': f"Complaint {topic_num}",
+                'description': f"Issues related to: {', '.join(topic['words'][:3])}"
+            }
+    
+    return labels
+
+def get_api_key():
+    """Retrieve API key from secrets.toml with caching"""
+    try:
+        with open('.streamlit/secrets.toml', 'r') as f:
+            secrets_content = f.read()
+            match = re.search(r'OPENROUTER_API_KEY\s*=\s*"([^"]+)"', secrets_content)
+            if match:
+                return match.group(1)
+    except FileNotFoundError:
+        pass
+    return None
+
 def render(df):
-    st.header("Negative Reviews Deep Dive", anchor=False)
+    st.header(":material/warning: Negative Reviews Deep Dive", anchor=False)
     
     # Initialize session state for topic labels if not exists
-    if 'topic_labels' not in st.session_state:
-        st.session_state.topic_labels = {}
+    if 'negative_topic_labels' not in st.session_state:
+        st.session_state.negative_topic_labels = {}
+    if 'negative_topic_descriptions' not in st.session_state:
+        st.session_state.negative_topic_descriptions = {}
+    if 'negative_topics_generated' not in st.session_state:
+        st.session_state.negative_topics_generated = False
+    if 'negative_topics_hash' not in st.session_state:
+        st.session_state.negative_topics_hash = None
     
     # ── Stopwords ────────────────────────────────────────────────────────────
     STOPWORDS = set(stopwords.words('english'))
@@ -36,8 +128,6 @@ def render(df):
         "opo", "ng", "cant", "sa", "u", "d", "na", "wow", "im", "ok", "app."
     }
     STOPWORDS.update(APP_STOPWORDS)
-    
-    # sklearn needs a list/frozenset, not a plain set, for stop_words param
     STOPWORDS_LIST = list(STOPWORDS)
     
     # ── Preprocessing ────────────────────────────────────────────────────────
@@ -52,13 +142,11 @@ def render(df):
     sia = SentimentIntensityAnalyzer()
     
     def get_sentiment_scores(text):
-        """Get compound sentiment score using VADER."""
         if pd.isna(text) or str(text).strip() == '':
             return 0.0
         return sia.polarity_scores(str(text))['compound']
     
     def classify_sentiment(score):
-        """Classify sentiment based on compound score."""
         if score >= 0.05:
             return 'Positive'
         elif score <= -0.05:
@@ -66,7 +154,6 @@ def render(df):
         else:
             return 'Neutral'
     
-    # Apply sentiment analysis if not already present
     if 'sentiment_score' not in df.columns:
         df['sentiment_score'] = df['translated'].apply(get_sentiment_scores)
     if 'sentiment' not in df.columns:
@@ -78,266 +165,244 @@ def render(df):
     negative_df = df[df['sentiment'] == 'Negative'][['translated', 'sentiment_score', 'processed_text']].copy()
     negative_df = negative_df.reset_index().rename(columns={'index': 'original_index'})
     
-    if len(negative_df) > 0:
+    if len(negative_df) == 0:
+        st.info("🎉 No negative reviews found! Users are happy with the app.")
+        return
+    
+    # Topic modelling on negative reviews
+    with st.spinner("Analyzing complaint patterns..."):
         vectorizer_neg = TfidfVectorizer(
             max_features=500,
             stop_words=STOPWORDS_LIST,
         )
-        try:
-            tfidf_neg = vectorizer_neg.fit_transform(negative_df['processed_text'].fillna(''))
-            n_topics_neg = min(10, tfidf_neg.shape[0], tfidf_neg.shape[1])
-            if n_topics_neg > 0:
-                nmf_neg = NMF(n_components=n_topics_neg, random_state=42)
-                nmf_neg.fit(tfidf_neg)
-                feature_names_neg = vectorizer_neg.get_feature_names_out()
-                topic_matrix = nmf_neg.transform(tfidf_neg)
-                negative_df['topic'] = topic_matrix.argmax(axis=1)
-                negative_df['topic_label'] = negative_df['topic'].apply(
-                    lambda x: ', '.join([feature_names_neg[i] for i in nmf_neg.components_[x].argsort()[:-4:-1]])
-                )
-            else:
-                negative_df['topic'] = -1
-                negative_df['topic_label'] = 'N/A'
-        except Exception:
-            negative_df['topic'] = -1
-            negative_df['topic_label'] = 'N/A'
-    else:
-        st.info("No negative reviews found.")
-    
-    if len(negative_df) > 0:
-        # Build negative topics data
-        negative_topics_data = []
-        for topic_idx in negative_df['topic'].unique():
-            if topic_idx == -1:
-                continue
-            topic_reviews = negative_df[negative_df['topic'] == topic_idx]
-            top_words = [feature_names_neg[i] for i in nmf_neg.components_[topic_idx].argsort()[:-6:-1]]
-            negative_topics_data.append({
-                "topic_num": int(topic_idx),
-                "words": top_words,
-                "prevalence": len(topic_reviews) / len(negative_df) * 100,
-                "count": len(topic_reviews),
-                "avg_sentiment": topic_reviews['sentiment_score'].mean()
-            })
+        tfidf_neg = vectorizer_neg.fit_transform(negative_df['processed_text'].fillna(''))
+        n_topics_neg = min(8, tfidf_neg.shape[0], tfidf_neg.shape[1])
         
-        # Sort by count descending
-        negative_topics_data.sort(key=lambda x: x['count'], reverse=True)
-        
-        # Overview metrics
-        col1, col2, col3 = st.columns(3, border=True)
-        with col1:
-            st.metric("Total Negative Reviews", len(negative_df))
-        with col2:
-            distinct_neg_topics = len([t for t in negative_topics_data if t['prevalence'] > 0])
-            st.metric("Negative Topics Found", distinct_neg_topics)
-        with col3:
-            avg_neg_sentiment = negative_df['sentiment_score'].mean()
-            st.metric("Avg Negative Sentiment", f"{avg_neg_sentiment:.2f}")
-        
-        # Topic Distribution Chart
-        st.write("**Topic Distribution in Negative Reviews**")
-        topic_dist = negative_df['topic_label'].value_counts()
-        if len(topic_dist) > 0:
-            topic_df = pd.DataFrame({'Topic': topic_dist.index, 'Count': topic_dist.values})
-            st.vega_lite_chart(
-                topic_df,
-                {
-                    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                    "width": "container",
-                    "height": 450,
-                    "mark": {"type": "bar", "cornerRadiusEnd": 4},
-                    "encoding": {
-                        "y": {
-                            "field": "Topic",
-                            "type": "nominal",
-                            "sort": "-x",
-                            "title": "Topic Keywords",
-                            "axis": {"labelFontSize": 11},
-                        },
-                        "x": {
-                            "field": "Count",
-                            "type": "quantitative",
-                            "title": "Count",
-                            "axis": {"labelFontSize": 11},
-                        },
-                        "color": {"value": "#e74c3c"},
-                        "tooltip": [
-                            {"field": "Topic", "type": "nominal", "title": "Topic"},
-                            {"field": "Count", "type": "quantitative", "title": "Count"}
-                        ],
-                    },
-                }
-            )
+        if n_topics_neg > 0:
+            nmf_neg = NMF(n_components=n_topics_neg, random_state=42)
+            nmf_neg.fit(tfidf_neg)
+            feature_names_neg = vectorizer_neg.get_feature_names_out()
+            topic_matrix = nmf_neg.transform(tfidf_neg)
+            negative_df['topic'] = topic_matrix.argmax(axis=1)
             
-            # AI-Generated Topic Labels for Negative Reviews
-            st.write("**AI-Generated Topic Labels**")
-            if st.button("Generate Negative Topic Labels with AI", key="ai_neg_labels_btn"):
-                with st.spinner("Analyzing negative review topics..."):
-                    try:
-                        with open('.streamlit/secrets.toml', 'r') as f:
-                            secrets_content = f.read()
-                            match = re.search(r'OPENROUTER_API_KEY\s*=\s*"([^"]+)"', secrets_content)
-                            if match:
-                                api_key = match.group(1)
-                            else:
-                                st.error("Could not find OPENROUTER_API_KEY in secrets.toml")
-                                st.stop()
-                    except FileNotFoundError:
-                        st.error("Could not find .streamlit/secrets.toml file")
-                        st.stop()
-                    except Exception as e:
-                        st.error(f"Error reading API key: {str(e)}")
-                        st.stop()
-                    
-                    topics_text = "\n".join([
-                        f"Topic {i+1} (keywords: {', '.join(t['words'])})" 
-                        for i, t in enumerate(negative_topics_data)
-                    ])
-                    
-                    prompt = f"""You are a data analyst. I have performed topic modelling on negative reviews from an app store.
-Below are the top keywords/phrases for each topic identified in the negative reviews. Please provide a short, understandable label (2-4 words) 
-and a brief description (1-2 sentences) for each topic that would help a non-technical user understand what customers are complaining about.
-
-{topics_text}
-
-Format your response as:
-Topic: [Label] - [Description]
-and so on.
-"""
-                    
-                    try:
-                        response = requests.post(
-                            url="https://openrouter.ai/api/v1/chat/completions",
-                            headers={
-                                "Authorization": f"Bearer {api_key}",
-                                "Content-Type": "application/json",
-                            },
-                            data=json.dumps({
-                                "model": "openai/gpt-oss-120b:free",
-                                "messages": [
-                                    {"role": "user", "content": prompt}
-                                ]
-                            })
-                        )
-                        
-                        if response.status_code != 200:
-                            st.error(f"API Error: {response.status_code} - {response.text}")
-                            st.stop()
-                        
-                        result = response.json()
-                        st.subheader("AI-Generated Negative Review Topic Labels")
-                        st.markdown(result['choices'][0]['message']['content'])
-                    except Exception as e:
-                        st.error(f"Error generating AI labels: {str(e)}")
-                        st.stop()
-        # Topic Explorer for Negative Reviews
-        st.write("**Topic Explorer - Click on a topic to explore reviews**")
-        
-        topic_options = {f"{st.session_state.topic_labels.get(t['topic_num'], f'Topic {t['topic_num']}')} ({t['count']} reviews, {t['prevalence']:.1f}%)": t['topic_num'] 
-                         for t in negative_topics_data}
-        
-        if topic_options:
-            selected_topic_label = st.selectbox("Select Negative Topic to Explore", options=list(topic_options.keys()), key="neg_topic_explorer_select")
-            selected_topic_num = topic_options[selected_topic_label]
-            selected_topic_idx = selected_topic_num
+            # Build negative topics data
+            negative_topics_data = []
+            for topic_idx in negative_df['topic'].unique():
+                topic_reviews = negative_df[negative_df['topic'] == topic_idx]
+                top_words = [feature_names_neg[i] for i in nmf_neg.components_[topic_idx].argsort()[:-6:-1]]
+                negative_topics_data.append({
+                    "topic_num": int(topic_idx) + 1,
+                    "words": top_words,
+                    "prevalence": len(topic_reviews) / len(negative_df) * 100,
+                    "count": len(topic_reviews),
+                    "avg_sentiment": topic_reviews['sentiment_score'].mean()
+                })
             
-            topic_info = next(t for t in negative_topics_data if t['topic_num'] == selected_topic_num)
+            # Sort by count descending
+            negative_topics_data.sort(key=lambda x: x['count'], reverse=True)
             
-            col1, col2, col3 = st.columns([2, 1, 1])
-            with col1:
-                st.write(f"**Topic Keywords:** {', '.join(topic_info['words'])}")
-            with col2:
-                st.metric("Review Count", topic_info['count'], border=True)
-            with col3:
-                st.metric("Avg Sentiment", f"{topic_info['avg_sentiment']:.2f}", border=True)
+            # Auto-generate AI Topic Labels (cached)
+            api_key = get_api_key()
             
-            # Get sample reviews for this topic
-            topic_reviews = negative_df[negative_df['topic'] == selected_topic_num].copy()
-            topic_reviews = topic_reviews.sort_values('sentiment_score')
-
-            topic1, topic2 = st.columns(2) 
-            with topic1:
-                st.write("**Sample Reviews from This Topic:**")
-                sample_size = min(10, len(topic_reviews))
-                for idx, row in topic_reviews.head(sample_size).iterrows():
-                    with st.container(border=True):
-                        st.markdown(f"**Score:** {row['sentiment_score']:.2f} :material/star:")
-                        st.markdown(f"{row['translated']}")
-
-            # Entity Extraction on Negative Reviews
-            with topic2:
-                st.write("**Entity Extraction - Negative Reviews**")
-                def extract_entities(text):
-                    text_lower = str(text).lower()
-                    entities = []
-                    feature_keywords = ['login', 'password', 'crash', 'slow', 'fast', 'ui', 'interface', 
-                                    'button', 'menu', 'notification', 'update', 'feature', 'function']
-                    os_keywords = ['android', 'samsung', 'xiaomi', 'oppo', 'vivo', 
-                                'tablet', 'phone', 'device']
-                    for keyword in feature_keywords:
-                        if keyword in text_lower:
-                            entities.append((keyword, 'feature'))
-                    for keyword in os_keywords:
-                        if keyword in text_lower:
-                            entities.append((keyword, 'os_device'))
-                    seen = set()
-                    unique_entities = []
-                    for entity, etype in entities:
-                        if (entity, etype) not in seen:
-                            seen.add((entity, etype))
-                            unique_entities.append((entity, etype))
-                    return unique_entities[:5]
+            if api_key and not st.session_state.negative_topics_generated:
+                # Create a hash of the topics data to use as cache key
+                current_hash = hashlib.md5(str(negative_topics_data).encode()).hexdigest()
+                st.session_state.negative_topics_hash = current_hash
                 
-                all_entities_neg = []
-                for text in negative_df['translated']:
-                    entities = extract_entities(text)
-                    all_entities_neg.extend(entities)
+                ai_response = generate_negative_ai_topic_labels_cached(current_hash, negative_topics_data, api_key)
                 
-                entity_counts_neg = Counter([entity for entity, _ in all_entities_neg])
-                entity_type_map_neg = {entity: etype for entity, etype in all_entities_neg}
-                
-                if entity_counts_neg:
-                    entity_data_neg = []
-                    for entity, count in entity_counts_neg.most_common(10):
-                        entity_type = entity_type_map_neg.get(entity, 'unknown')
-                        sample_reviews = []
-                        for idx, row in negative_df.iterrows():
-                            if entity in str(row['translated']).lower():
-                                sample_reviews.append(str(row['translated'])[:100] + "...")
-                                if len(sample_reviews) >= 2:
-                                    break
-                        entity_data_neg.append({
-                            "Entity": entity,
-                            "Type": entity_type.replace('_', ' ').title(),
-                            "Count": count,
-                            "Sample Reviews": " | ".join(sample_reviews) if sample_reviews else "No samples"
-                        })
-                    entity_df_neg = pd.DataFrame(entity_data_neg)
-                    st.dataframe(entity_df_neg, width="stretch", hide_index=True)
+                if ai_response:
+                    ai_labels = parse_negative_ai_labels(ai_response, negative_topics_data)
+                    for topic_num, label_info in ai_labels.items():
+                        st.session_state.negative_topic_labels[topic_num] = label_info['label']
+                        st.session_state.negative_topic_descriptions[topic_num] = label_info['description']
+                    st.session_state.negative_topics_generated = True
                 else:
-                    st.info("No entities detected in the negative reviews")
-                
-                # Co-occurrence Analysis for Negative Reviews
-                st.write("**Co-occurrence Analysis - Negative Reviews**")
-                if 'entity_df_neg' in locals() and len(entity_df_neg) > 0 and len(negative_topics_data) > 0:
-                    cooccur_data_neg = []
-                    for topic in negative_topics_data[:3]:
+                    # Fallback to default labels
+                    for topic in negative_topics_data:
                         topic_num = topic['topic_num']
-                        topic_label = st.session_state.topic_labels.get(topic_num, f"Topic {topic_num}")
-                        topic_word_set = set(topic['words'])
-                        for _, entity_row in entity_df_neg.head(5).iterrows():
-                            entity = entity_row['Entity']
-                            cooccur_score = 1 if entity in topic_word_set or any(word in entity.lower() for word in topic['words']) else 0
-                            if cooccur_score > 0:
-                                cooccur_data_neg.append({
-                                    "Topic": topic_label,
-                                    "Entity": entity,
-                                    "Co-occurrence Score": cooccur_score
-                                })
-                    if cooccur_data_neg:
-                        cooccur_df_neg = pd.DataFrame(cooccur_data_neg)
-                        st.dataframe(cooccur_df_neg, width="stretch", hide_index=True)
-                    else:
-                        st.info("No significant co-occurrences found between negative topics and entities")
-                else:
-                    st.info("Insufficient data for co-occurrence analysis")
+                        st.session_state.negative_topic_labels[topic_num] = f"Complaint {topic_num}"
+                        st.session_state.negative_topic_descriptions[topic_num] = f"Issues related to: {', '.join(topic['words'][:3])}"
+                    st.session_state.negative_topics_generated = True
+            elif not api_key:
+                # Set default labels if no API key
+                for topic in negative_topics_data:
+                    topic_num = topic['topic_num']
+                    if topic_num not in st.session_state.negative_topic_labels:
+                        st.session_state.negative_topic_labels[topic_num] = f"Complaint {topic_num}"
+                        st.session_state.negative_topic_descriptions[topic_num] = f"Issues related to: {', '.join(topic['words'][:3])}"
+                st.session_state.negative_topics_generated = True
+                
+                # Show warning about missing API key
+                warning_placeholder = st.empty()
+                warning_placeholder.warning("⚠️ OpenRouter API key not found. Using default labels. Add OPENROUTER_API_KEY to .streamlit/secrets.toml for AI-powered insights.")
+                time.sleep(3)
+                warning_placeholder.empty()
+            
+            # Show success message briefly
+            if st.session_state.negative_topics_generated and api_key:
+                success_placeholder = st.empty()
+                success_placeholder.success("✅ AI complaint insights loaded!")
+                time.sleep(2)
+                success_placeholder.empty()
+        else:
+            st.warning("Not enough negative reviews for detailed topic analysis.")
+            return
+    
+    # Overview metrics
+    col1, col2, col3 = st.columns(3, border=True)
+    with col1:
+        st.metric("Total Negative Reviews", len(negative_df))
+    with col2:
+        st.metric("Complaint Categories", len(negative_topics_data))
+    with col3:
+        avg_neg_sentiment = negative_df['sentiment_score'].mean()
+        st.metric("Avg Severity", f"{avg_neg_sentiment:.2f}", help="Lower = more severe complaints")
+    
+    # Topic Distribution Chart with AI Labels
+    st.write("**Complaint Distribution**")
+    
+    # Create distribution data with AI labels
+    dist_data = []
+    for topic in negative_topics_data:
+        label = st.session_state.negative_topic_labels.get(topic['topic_num'], f"Topic {topic['topic_num']}")
+        dist_data.append({
+            "Complaint Type": label,
+            "Count": topic['count']
+        })
+    
+    topic_dist_df = pd.DataFrame(dist_data)
+    st.vega_lite_chart(
+        topic_dist_df,
+        {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "width": "container",
+            "height": 450,
+            "mark": {"type": "bar", "cornerRadiusEnd": 4},
+            "encoding": {
+                "y": {
+                    "field": "Complaint Type",
+                    "type": "nominal",
+                    "sort": "-x",
+                    "title": "Complaint Category",
+                    "axis": {"labelFontSize": 11},
+                },
+                "x": {
+                    "field": "Count",
+                    "type": "quantitative",
+                    "title": "Number of Complaints",
+                    "axis": {"labelFontSize": 11},
+                },
+                "color": {"value": "#e74c3c"},
+                "tooltip": [
+                    {"field": "Complaint Type", "type": "nominal", "title": "Issue"},
+                    {"field": "Count", "type": "quantitative", "title": "Count"}
+                ]
+            },
+        }
+    )
+    
+    # Detailed Topics Table
+    st.write("**Complaint Categories Details**")
+    topic_details = []
+    for topic in negative_topics_data:
+        label = st.session_state.negative_topic_labels.get(topic['topic_num'], f"Category {topic['topic_num']}")
+        description = st.session_state.negative_topic_descriptions.get(topic['topic_num'], "AI insights loading...")
+        topic_details.append({
+            "Issue": label,
+            "Description": description[:150] + "..." if len(description) > 150 else description,
+            "Occurrences": topic['count'],
+            "Percentage": f"{topic['prevalence']:.1f}%",
+            "Key Indicators": ", ".join(topic['words'][:4])
+        })
+    
+    st.dataframe(pd.DataFrame(topic_details), use_container_width=True, hide_index=True)
+
+    if st.button("🔄 Regenerate AI Labels", key="regenerate_neg_ai_labels", help="Regenerate AI complaint labels"):
+        # Clear cache and reset
+        st.cache_data.clear()
+        st.session_state.negative_topics_generated = False
+        st.session_state.negative_topic_labels.clear()
+        st.session_state.negative_topic_descriptions.clear()
+        st.rerun()
+    
+    # Topic Explorer for Negative Reviews
+    st.write("**Complaint Explorer - Select an issue to see examples**")
+    
+    topic_options = {}
+    for t in negative_topics_data:
+        label = st.session_state.negative_topic_labels.get(t['topic_num'], f"Category {t['topic_num']}")
+        topic_options[f"{label} ({t['count']} complaints, {t['prevalence']:.0f}%)"] = t['topic_num']
+    
+    if topic_options:
+        selected_topic_label = st.selectbox("Select Complaint Type", options=list(topic_options.keys()), key="neg_topic_explorer_select")
+        selected_topic_num = topic_options[selected_topic_label]
+        
+        # Find the actual topic index (adjusting for 1-based numbering)
+        selected_topic_data = next(t for t in negative_topics_data if t['topic_num'] == selected_topic_num)
+        actual_topic_idx = selected_topic_num - 1
+        
+        col1, col2, col3 = st.columns([2, 1, 1])
+        with col1:
+            st.write(f"**Common keywords:** {', '.join(selected_topic_data['words'])}")
+            st.write(f"**Issue description:** {st.session_state.negative_topic_descriptions.get(selected_topic_num, 'AI insights loading...')}")
+        
+        with col2:
+            st.metric("Complaints", selected_topic_data['count'], border=True)
+        with col3:
+            st.metric("Avg Sentiment", f"{selected_topic_data['avg_sentiment']:.2f}", border=True)
+        
+        # Get sample reviews for this topic
+        topic_reviews = negative_df[negative_df['topic'] == actual_topic_idx].copy()
+        topic_reviews = topic_reviews.sort_values('sentiment_score')
+        
+        st.write("**Sample Complaints:**")
+        sample_size = min(10, len(topic_reviews))
+        for idx, row in topic_reviews.head(sample_size).iterrows():
+            with st.container(border=True):
+                st.markdown(f"**Severity:** {row['sentiment_score']:.2f} (lower = more severe)")
+                st.markdown(f"💬 {row['translated']}")
+        
+        # Entity Extraction on Negative Reviews
+        st.write("**Related Issues & Entities**")
+        def extract_entities(text):
+            text_lower = str(text).lower()
+            entities = []
+            feature_keywords = ['login', 'password', 'crash', 'slow', 'freeze', 'bug', 'error', 
+                               'loading', 'timeout', 'connection', 'update', 'feature', 'missing',
+                               'registration', 'payment', 'transaction', 'security', 'privacy']
+            os_keywords = ['android', 'samsung', 'xiaomi', 'oppo', 'vivo', 'tablet', 'phone', 'device']
+            
+            for keyword in feature_keywords:
+                if keyword in text_lower:
+                    entities.append((keyword, 'issue'))
+            for keyword in os_keywords:
+                if keyword in text_lower:
+                    entities.append((keyword, 'device'))
+            
+            seen = set()
+            unique_entities = []
+            for entity, etype in entities:
+                if (entity, etype) not in seen:
+                    seen.add((entity, etype))
+                    unique_entities.append((entity, etype))
+            return unique_entities[:5]
+        
+        all_entities_neg = []
+        for text in topic_reviews['translated']:
+            entities = extract_entities(text)
+            all_entities_neg.extend(entities)
+        
+        entity_counts_neg = Counter([entity for entity, _ in all_entities_neg])
+        
+        if entity_counts_neg:
+            entity_data_neg = []
+            for entity, count in entity_counts_neg.most_common(10):
+                entity_data_neg.append({
+                    "Related Issue": entity,
+                    "Mentions": count,
+                    "Percentage": f"{(count/len(topic_reviews))*100:.0f}%"
+                })
+            st.dataframe(pd.DataFrame(entity_data_neg), use_container_width=True, hide_index=True)
+        else:
+            st.info("No specific technical issues identified in these complaints")
