@@ -213,7 +213,7 @@ def render(df):
         
         st.write("**Agreement Matrix**")
         agreement_matrix = pd.crosstab(comparison_df['VADER_Sentiment'], comparison_df['Cluster_Group'])
-        st.dataframe(agreement_matrix, use_container_width=True)
+        st.dataframe(agreement_matrix, width='content')
     
     with col2:
         st.write("**Cluster Separation Visualization**")
@@ -254,7 +254,7 @@ def render(df):
     }).round(3)
     length_sentiment.columns = ['Mean Sentiment', 'Std Dev', 'Count']
     
-    st.dataframe(length_sentiment, use_container_width=True)
+    st.dataframe(length_sentiment, width='content')
     
     # ANOVA test for consistency
     length_groups = [group['sentiment_score'].values for name, group in df.groupby('length_category')]
@@ -413,7 +413,7 @@ def render(df):
             'Metric': ['Distribution Balance', 'Clustering Quality', 'Sentiment Strength', 'Length Consistency', 'Low Neutral Ratio'],
             'Score': [f"{entropy_score:.0f}/20", f"{clustering_score:.0f}/30", f"{strength_score:.0f}/20", f"{consistency_score:.0f}/15", f"{neutral_score:.0f}/15"]
         })
-        st.dataframe(component_scores, use_container_width=True, hide_index=True)
+        st.dataframe(component_scores, width='content', hide_index=True)
     
     # Recommendations
     st.write("**Recommendations**")

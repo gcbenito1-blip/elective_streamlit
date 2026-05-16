@@ -316,7 +316,7 @@ def render(df):
             "Key Indicators": ", ".join(topic['words'][:4])
         })
     
-    st.dataframe(pd.DataFrame(topic_details), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(topic_details), width='content', hide_index=True)
 
     if st.button("🔄 Regenerate AI Labels", key="regenerate_neg_ai_labels", help="Regenerate AI complaint labels"):
         # Clear cache and reset
@@ -403,6 +403,6 @@ def render(df):
                     "Mentions": count,
                     "Percentage": f"{(count/len(topic_reviews))*100:.0f}%"
                 })
-            st.dataframe(pd.DataFrame(entity_data_neg), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(entity_data_neg), width='content', hide_index=True)
         else:
             st.info("No specific technical issues identified in these complaints")

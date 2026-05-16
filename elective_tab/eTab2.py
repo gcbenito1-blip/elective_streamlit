@@ -456,7 +456,7 @@ def render(df):
                 "Key Words": ", ".join(topic['words'][:5])
             })
         overview_df = pd.DataFrame(overview_data)
-        st.dataframe(overview_df, use_container_width=True, hide_index=True)
+        st.dataframe(overview_df, width='content', hide_index=True)
     
     # Topic Explorer
     st.write("**Topic Explorer**")
@@ -553,6 +553,6 @@ def render(df):
                 "Sample Reviews": " | ".join(sample_reviews) if sample_reviews else "No samples"
             })
         entity_df = pd.DataFrame(entity_data)
-        st.dataframe(entity_df, use_container_width=True, hide_index=True)
+        st.dataframe(entity_df, width='content', hide_index=True)
     else:
         st.info("No entities detected in the current dataset")
