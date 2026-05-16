@@ -16,7 +16,7 @@ def render(df):
     st.header(":material/bar_chart: VADER Evaluation & Validation", anchor=False)
     
     st.markdown("""
-    This section evaluates the quality and reliability of VADER sentiment analysis on your app reviews.
+    This section evaluates the quality and reliability of VADER sentiment analysis on text analysis.
     Since this is unsupervised learning, we use internal validation metrics to assess sentiment consistency and distribution.
     """)
     
