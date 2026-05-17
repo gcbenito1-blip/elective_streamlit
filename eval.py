@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -462,3 +463,5 @@ def render(df):
                     st.write(f"**Score:** {row['sentiment_score']:.3f}")
     else:
         st.info("No highly ambiguous cases detected. All reviews have clear sentiment signals.")
+df = pd.read_csv('data/egovph.csv')
+render(df)
