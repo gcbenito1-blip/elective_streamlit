@@ -1,5 +1,5 @@
 import streamlit as st
-from elective_tab import eTab1, eTab2, eTab3, eTab0, eTab4
+from elective_tab import eTab1, eTab2, eTab3, eTab0
 import pandas as pd
 
 @st.cache_data
