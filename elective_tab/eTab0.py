@@ -84,18 +84,6 @@ def render(app_id: str = "egov.app", count: int = 500):
         st.write("")
         refresh = st.button("🔄 Refresh", key="rv_refresh", width='content')
     
-    # Add info about VADER
-    with st.expander("ℹ️ About Sentiment Analysis"):
-        st.markdown("""
-        **VADER (Valence Aware Dictionary and sEntiment Reasoner)** is used for sentiment analysis.
-        - **Positive**: Compound score ≥ 0.05
-        - **Neutral**: -0.05 < Compound score < 0.05  
-        - **Negative**: Compound score ≤ -0.05
-        
-        VADER is specifically attuned to sentiments expressed in social media and reviews, 
-        handling intensifiers, capitalization, punctuation, and emoticons.
-        """)
-
     cache_key = f"rv_df_{app_id}"
     if cache_key not in st.session_state or refresh:
         with st.spinner("Scraping and analyzing reviews..."):
@@ -201,30 +189,3 @@ def render(app_id: str = "egov.app", count: int = 500):
         height=250,
     )
     
-    # Optional: Show VADER score distribution
-    with st.expander("📊 VADER Score Distribution"):
-        fig, ax = plt.subplots(figsize=(10, 4))
-        ax.hist(df["polarity"], bins=30, color="#3498db", edgecolor="black", alpha=0.7)
-        ax.axvline(x=0.05, color="green", linestyle="--", label="Positive threshold (0.05)")
-        ax.axvline(x=-0.05, color="red", linestyle="--", label="Negative threshold (-0.05)")
-        ax.set_xlabel("VADER Compound Score")
-        ax.set_ylabel("Number of Reviews")
-        ax.set_title("Distribution of VADER Sentiment Scores")
-        ax.legend()
-        ax.grid(True, alpha=0.3)
-        st.pyplot(fig)
-        
-        st.markdown("""
-        **VADER Score Components:**
-        - **Compound Score**: Normalized, weighted composite score (-1 to +1)
-        - **Positive**: Proportion of text that sounds positive
-        - **Neutral**: Proportion of text that sounds neutral  
-        - **Negative**: Proportion of text that sounds negative
-        
-        VADER accounts for:
-        - Emojis/emoticons (😊, :))
-        - Punctuation emphasis (!!!, ???)
-        - Capitalization (GREAT vs great)
-        - Degree modifiers (extremely, slightly)
-        - Negation handling (not good)
-        """)
