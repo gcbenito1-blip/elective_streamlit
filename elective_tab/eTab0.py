@@ -58,7 +58,9 @@ STOPWORDS = {
     "me","you","app","apps","egov","gov","government","its","or","do","if","can",
     "has","by","use","used","get","got","just","would","could","should","very",
     "all","from","will","your","our","had","been","were","what","when","how",
-    "one","out","no","up","im","ive","dont","cant","wont","didnt","doesnt",
+    "one","out","no","up","im","ive","dont","cant","wont","didnt","doesnt", "ang",
+    "ng", "mga", "yung", "para", "pag", "lang", "may", "nga",
+    "wala", "walang", "mag", "nag", "kaya", "now", "even", "pero", "kasi", "parin"
 }
 
 def make_wordcloud(texts, colormap="Blues"):
